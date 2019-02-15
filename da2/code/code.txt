@@ -1,0 +1,37 @@
+Name: Matt Strickland
+Partner: Jake Levine 
+Date: 10/11/17
+Subject: DA2, writing C function in assembly
+ 
+Note: Double slash has been used to indicate comments on the same line as instruction
+      this throws an error when compiling and has been done for documenation only
+
+    .syntax unified
+    .text
+
+
+    .global inner_prod_asm
+    .func inner_prod_asm, inner_prod_asm
+    .thumb_func 
+
+inner_prod_asm:
+        PUSH   {r4, r5}		// Push contents of R4 and R5 so content can be restored when function finished 
+        MOV    r3, r0		// Place *h[] in r3 so r0 can be used for 'sum'
+        MOV    r0, #0		// Set r0 to 0, so it can be used for sum
+        
+loop:   
+        LDRSH  r4, [r1], #2	// Contents of address stored in R1 (*x[]) half word placed in R4, R1 incremented by 16 (2 bytes)  
+        LDRSH  r5, [r3], #2 	// Contents of address stored in R3 (*h[]) half word placed in R5, R3 incremented by 16 (1 halfword)       
+        MLA    r0, r4, r5, r0	// r0 = r0 + (r4 * r5); sum = sum + (h[n] * x[n])
+        SUB    r2, r2, #1	// r2 = n elements of array, decrement r2 by one each iteration 
+        CMP    r2, #0 		// iff r2 (nth iteration) = 0, continue to next line otherwise GoTo loop
+        BGT    loop
+        ASRS   r0, #16		// Shift the concatenated value of r0 to the lower 16 bits of R0 (keep sign bit)
+        POP    {r4, r5}		// Restore original contents of R4 and R5 before returning
+	BX     lr		// branch to PC address stored in link register when executed (exit loop)
+	
+
+    .endfunc
+
+
+    .end
